@@ -1,0 +1,154 @@
+import streamlit as st
+from google import genai
+import os
+
+# Pillow (PIL) kütüphanesi görüntü işleme için gerekli, kurulduğunu varsayıyoruz.
+# pip install pillow 
+from PIL import Image
+import io
+
+# --- 1. Konfigürasyon ve API Anahtarı ---
+try:
+    # API Anahtarının hala tanımlı olduğundan emin olun (Terminal oturumunda)
+    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+except Exception as e:
+    st.error("Gemini API Anahtarı bulunamadı. Lütfen 'GEMINI_API_KEY' ortam değişkenini ayarlayın.")
+    st.stop()
+
+
+# --- 2. Oturum Durumu Yönetimi ---
+if 'current_step' not in st.session_state:
+    st.session_state.current_step = 1
+if 'input_data' not in st.session_state:
+    st.session_state.input_data = {}
+
+st.title("🌱 YZ Destekli Tarımsal Danışmanlık (Prototip Geliştirme)")
+st.markdown("---")
+
+# --- Navigasyon Butonları ---
+st.sidebar.title("Danışmanlık Aşamaları")
+if st.sidebar.button("1. Planlama (Ekim Öncesi)"):
+    st.session_state.current_step = 1
+    st.rerun()
+if st.sidebar.button("2. Teşhis (Gelişim Aşaması)"):
+    st.session_state.current_step = 4
+    st.rerun()
+st.markdown("---")
+
+
+# --- MEVCUT AŞAMALAR (1, 2, 3) KORUNDU ---
+
+# AŞAMA 1: Konum ve Tarla Geçmişi
+if st.session_state.current_step == 1:
+    st.header("1. Aşama: Temel Tarla Bilgileri")
+    il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input", value=st.session_state.input_data.get('il', 'Konya'))
+    gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input", value=st.session_state.input_data.get('gecmis', '2024: Buğday, 2023: Kanola, 2022: Arpa'))
+    if st.button("Planlama Adımı 2"):
+        if il and gecmis:
+            st.session_state.input_data['il'] = il
+            st.session_state.input_data['gecmis'] = gecmis
+            st.session_state.current_step = 2
+            st.rerun()
+        else:
+            st.warning("Lütfen tüm alanları doldurun.")
+
+# AŞAMA 2: Toprak ve Amaç Bilgisi
+elif st.session_state.current_step == 2:
+    st.header("2. Aşama: Toprak Durumu ve Amaç")
+    toprak = st.text_area("Toprak analiz sonuçlarınızın özetini girin veya önemli değerleri (pH, NPK) belirtin:", key="toprak_input", value=st.session_state.input_data.get('toprak', 'pH: 7.5, Organik Madde: %1.5 (Düşük), Azot (N) düzeyi orta.'))
+    amac = st.radio("Bu sezon ana hedefiniz nedir?", 
+                    ('Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'), 
+                    index=['Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'].index(st.session_state.input_data.get('amac', 'Maksimum Kâr')), key="amac_input")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Geri", key="back2"):
+            st.session_state.current_step = 1
+            st.rerun()
+    with col2:
+        if st.button("Analiz Et", key="analyze2"):
+            if toprak and amac:
+                st.session_state.input_data['toprak'] = toprak
+                st.session_state.input_data['amac'] = amac
+                st.session_state.current_step = 3
+                st.rerun()
+            else:
+                st.warning("Lütfen tüm alanları doldurun.")
+
+# AŞAMA 3: Gemini ile Ekim Öncesi Analiz ve Sonuç
+elif st.session_state.current_step == 3:
+    st.header("3. Aşama: Ekim Öncesi YZ Analizi")
+    prompt = f"""
+    Sen Türkiye'deki çiftçilere bilimsel ve lokal verilere dayalı danışmanlık veren bir YZ Ziraat Mühendisisin. 
+    Aşağıdaki verilere göre en uygun ekim öncesi tavsiyeni (ürün, münavebe ve temel gübreleme) 3 ana başlıkta özetle. 
+    Cevabını Markdown formatında, net ve madde madde sun. (Veriler: Konum: {st.session_state.input_data.get('il', 'Bilinmiyor')}, Geçmiş: {st.session_state.input_data.get('gecmis', '')}, Toprak: {st.session_state.input_data.get('toprak', '')}, Amaç: {st.session_state.input_data.get('amac', '')})
+    """
+    
+    with st.spinner("Gemini derinlemesine tarımsal analiz yapıyor..."):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash', 
+                contents=prompt
+            )
+            st.success("✅ Analiz Tamamlandı!")
+            st.subheader("💡 Gemini'den Ekim Öncesi Tavsiye")
+            st.markdown(response.text)
+        except Exception as e:
+            st.error(f"Gemini API çağrısında bir hata oluştu: {e}")
+            
+    st.markdown("---")
+    if st.button("Yeniden Planlama Yap"):
+        st.session_state.current_step = 1
+        st.session_state.input_data = {}
+        st.rerun()
+
+
+# --- YENİ AŞAMA: 4. GÖRÜNTÜ İLE TEŞHİS ---
+elif st.session_state.current_step == 4:
+    st.header("4. Aşama: Görüntü ile Hastalık/Zararlı Teşhisi")
+    st.warning("Bu özellik, görsel veri gerektirir. Lütfen net, sadece sorunlu bölgeyi gösteren bir fotoğraf yükleyin.")
+    
+    # Dosya yükleme bileşeni
+    uploaded_file = st.file_uploader("Bitki Hastalığı veya Zararlısının Fotoğrafını Yükleyin", type=["jpg", "jpeg", "png"])
+    
+    # Kullanıcıdan ek bilgi alma
+    ek_bilgi = st.text_area("Hastalığın yayılımı, ne zaman başladığı gibi ek bilgileriniz varsa girin:", key="ek_bilgi_teshis")
+    
+    if uploaded_file is not None:
+        try:
+            # Görüntüyü yükle ve göster
+            image = Image.open(uploaded_file)
+            st.image(image, caption='Yüklenen Görüntü', width=300)
+            
+            if st.button("Görüntüyü Analiz Et ve Müdahale Önerisi Al"):
+                if ek_bilgi.strip() == "":
+                    st.warning("Lütfen teşhisin doğruluğu için ek bilgi (ürün, yayılım) girin.")
+                else:
+                    # Görüntü ve metin verisini birleştirerek Gemini'ye gönder
+                    teshis_prompt = f"""
+                    Sen uzman bir ziraat mühendisisin. Ekteki görselde gördüğünüz bitki hastalığı/zararlısı nedir? 
+                    Teşhisi koyduktan sonra, lütfen Türkiye tarımına uygun, uygulanabilir bir mücadele ve dozaj önerisi sun.
+
+                    --- EK BİLGİLER ---
+                    Görüntüdeki ürün: Lütfen tahmin edin.
+                    Hastalık hakkında çiftçinin verdiği ek bilgi: {ek_bilgi}
+                    """
+                    
+                    contents = [teshis_prompt, image]
+                    
+                    with st.spinner("Gemini hem görseli hem de metni analiz ediyor..."):
+                        response = client.models.generate_content(
+                            model='gemini-2.5-flash', 
+                            contents=contents
+                        )
+                        st.success("✅ Teşhis Tamamlandı!")
+                        st.subheader("🔬 YZ'den Teşhis ve Müdahale Önerisi")
+                        st.markdown(response.text)
+                        
+        except Exception as e:
+            st.error(f"Görüntü işlenirken bir hata oluştu: {e}")
+            st.warning("Lütfen '.jpg' veya '.png' formatında olduğundan emin olun.")
+            
+    st.markdown("---")
+    if st.button("Yeni Teşhis Başlat"):
+        st.session_state.current_step = 4
+        st.rerun()
