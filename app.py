@@ -7,23 +7,34 @@ import time
 
 # --- 1. Konfigürasyon ve API Anahtarını Çekme ---
 
-# --- CSS İYİLEŞTİRMELERİ ---
+# --- CSS İYİLEŞTİRMELERİ (YENİ TASARIM DAHİL) ---
 st.markdown("""
 <style>
 /* Streamlit'in ana menü butonunu (sağ üst) ve footer'ını gizle */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 
-/* Navigasyon butonlarını (sidebar) yuvarlak ve config.toml renginde yap */
+/* Giriş alanlarının (Input, Textarea, NumberInput) arka planının yeşil yapılması */
+/* Çiftçinin veri girdiği her yer (il, geçmiş, toprak, gübre planı vb.) artık yeşil arka plana sahip. */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stNumberInput > div > div > input {
+    background-color: #E6F7E6; /* Açık yeşil arka plan */
+    border: 1px solid #3CB371; /* Yeşil çerçeve */
+    color: #333333;
+    border-radius: 5px;
+}
+
+/* Navigasyon butonlarının (sidebar) yuvarlak ve sarı çerçeveli yapılması */
 .stButton>button {
     border-radius: 20px;
-    border: 1px solid #3CB371; /* config.toml primaryColor (varsayılan yeşil) */
+    border: 1px solid #FFD700; /* Çerçeve rengi sarı (İstenen çerçeve) */
     color: #333333;
-    background-color: #F7F9FB; /* config.toml backgroundColor (varsayılan açık gri) */
+    background-color: #F7F9FB; 
 }
 .stButton>button:hover {
     color: white;
-    background-color: #3CB371;
+    background-color: #3CB371; /* Hover'da yeşile dönüyor */
     border: 1px solid #3CB371;
 }
 </style>
@@ -64,7 +75,7 @@ def set_step(step_number):
 # Uygulama ayarları (Wide mode seçildi).
 st.set_page_config(page_title="🌱 YZ Tarım Danışmanlığı", layout="wide")
 
-# ANA İÇERİK BAŞLIĞI (Logo kenar çubuğuna taşındığı için burada sadece başlık var)
+# ANA İÇERİK BAŞLIĞI 
 st.markdown("# YZ Destekli Tarımsal Danışmanlık (Prototip)") 
 st.markdown("---")
 
