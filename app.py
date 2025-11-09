@@ -9,11 +9,9 @@ import time
 
 try:
     # API Anahtarını Streamlit Secrets veya Ortam değişkeninden alın
-    # Streamlit Cloud'daki "Secrets" ayarınızdaki [vars] bölümünü kullanır
     if 'GEMINI_API_KEY' in st.secrets.vars:
         api_key = st.secrets.vars.GEMINI_API_KEY
     else:
-        # Lokal veya diğer ortamlar için
         api_key = os.environ.get("GEMINI_API_KEY")
 
     if not api_key:
@@ -26,7 +24,7 @@ except Exception as e:
     st.error(f"API istemcisi başlatılamadı: {e}")
     st.stop()
 
-# Tool (Araç) Tanımı: Google Search aracının basit tanımı
+# Tool (Araç) Tanımı
 weather_tool_config = [{"google_search": {}}]
 
 
@@ -37,19 +35,18 @@ if 'input_data' not in st.session_state:
     st.session_state.input_data = {}
 
 def set_step(step_number):
-    """Navigasyon durumunu ayarlar ve sayfanın yeniden yüklenmesini zorlar."""
+    """Navigasyon durumunu ayarlar."""
     st.session_state.current_step = step_number
-    # Streamlit, on_click kullanıldığında durumu değiştirdikten sonra otomatik rerun yapar.
 
 st.set_page_config(page_title="YZ Tarım Danışmanlığı", layout="wide")
 st.title("🌱 YZ Destekli Tarımsal Danışmanlık (Prototip)")
 st.markdown("---")
 
 
-# --- Navigasyon Butonları (İstenilen Yeni Sıralama) ---
+# --- Navigasyon Butonları ---
 st.sidebar.title("Danışmanlık Aşamaları")
 
-# Her butonda `on_click` argümanı ve `args` kullanılarak durum değişikliği fonksiyona devredildi.
+# Her butonda 'on_click' kullanılarak durum değişikliği fonksiyona devredildi.
 if st.sidebar.button("1. Planlama (Ekim Öncesi)", key="nav_planlama", on_click=set_step, args=(1,)):
     pass
 
@@ -79,7 +76,7 @@ if st.session_state.current_step in [1, 2, 3]:
     if st.session_state.current_step == 1:
         st.header("1. Aşama: Temel Tarla Bilgileri")
         il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input_1", value=st.session_state.input_data.get('il', 'Konya'))
-        # HATA DÜZELTİLDİ: Çift tırnaklar doğru kapatıldı.
+        # KONTROL EDİLDİ: String ve key'ler doğru
         gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input_1", value=st.session_state.input_data.get('gecmis', '2024: Buğday, 2023: Kanola, 2022: Arpa'))
         if st.button("Planlama Adımı 2", key="btn_planlama_ileri"):
             if il and gecmis:
@@ -90,4 +87,5 @@ if st.session_state.current_step in [1, 2, 3]:
             else:
                 st.warning("Lütfen tüm alanları doldurun.")
 
-    elif st.session_state.current_step
+    elif st.session_state.current_step == 2: # KONTROL EDİLDİ: İki nokta üst üste (:) var.
+        st.header("1. Aşama Devamı: Toprak Durumu ve Amaç
