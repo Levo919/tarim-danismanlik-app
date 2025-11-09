@@ -1,1 +1,10 @@
-
+[theme]
+# Arka planı hafif gri/beyaz ton yapalım (Sakin bir görüntü)
+backgroundColor = "#F7F9FB"
+# Ana vurgu rengi (Butonlar, sliderlar, linkler). Doğayı çağrıştıran yeşil tonu.
+primaryColor = "#3CB371" 
+# Kenar çubuğu arka plan rengi (Hafif yeşil/gri ton)
+secondaryBackgroundColor = "#E6F7EF" 
+# Sayfanın ana yazı rengi
+textColor = "#333333"
+font = "sans serif"
