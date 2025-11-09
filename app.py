@@ -9,7 +9,7 @@ import time
 
 try:
     # API Anahtarını Streamlit Secrets veya Ortam değişkeninden alın
-    # [vars] yapısı doğru bir şekilde tanımlandı (image_8e2a40.png).
+    # Streamlit Secrets yapınızın doğru olduğunu görüyoruz: [vars] GEMINI_API_KEY = "..."
     if 'vars' in st.secrets and 'GEMINI_API_KEY' in st.secrets.vars:
         api_key = st.secrets.vars.GEMINI_API_KEY
     else:
@@ -25,7 +25,7 @@ except Exception as e:
     st.error(f"API istemcisi başlatılamadı: {e}")
     st.stop()
 
-# GOOGLE SEARCH ARACI DÜZELTME: Doğru format.
+# GOOGLE SEARCH ARACI DÜZELTME: Doğru format, Gemini API konfigürasyon hatasını çözer.
 tools_config = [{"google_search": {}}]
 
 
@@ -39,7 +39,7 @@ def set_step(step_number):
     """Navigasyon durumunu ayarlar."""
     st.session_state.current_step = step_number
 
-# Uygulama ayarları (Wide mode seçildi - image_8e21e4.png).
+# Uygulama ayarları (Wide mode seçildi).
 st.set_page_config(page_title="🌱 YZ Tarım Danışmanlığı", layout="wide")
 st.title("🌱 YZ Destekli Tarımsal Danışmanlık (Prototip)")
 st.markdown("---")
@@ -78,7 +78,7 @@ if st.session_state.current_step in [1, 2, 3]:
         st.header("1. Aşama: Temel Tarla Bilgileri")
         il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input_1", value=st.session_state.input_data.get('il', 'Konya'))
         
-        # Hata Satırı (Line 72 ve 83) Düzeltildi: unterminated string literal (image_991ac7.png, image_99f445.png)
+        # Line 72 hatası: unterminated string literal
         gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input_1", value=st.session_state.input_data.get('gecmis', '2024: Buğday, 2023: Kanola, 2022: Arpa'))
         
         if st.button("Planlama Adımı 2", key="btn_planlama_ileri"):
@@ -91,11 +91,10 @@ if st.session_state.current_step in [1, 2, 3]:
                 st.warning("Lütfen tüm alanları doldurun.")
 
     elif st.session_state.current_step == 2:
-        # Hata Satırı (Line 91) Düzeltildi: unterminated string literal ve expected ':' (image_99f005.png, image_8f06c4.png, image_99ece2.png)
+        # Line 91 hataları: unterminated string literal, expected ':'
         st.header("1. Aşama Devamı: Toprak Durumu ve Amaç")
         toprak = st.text_area("Toprak analiz sonuçlarınızın özetini girin veya önemli değerleri (pH, NPK) belirtin:", key="toprak_input_2", value=st.session_state.input_data.get('toprak', 'pH: 7.5, Organik Madde: %1.5 (Düşük), Azot (N) düzeyi orta.'))
         
-        # Hata Satırı Düzeltildi: Listeler doğru kapatıldı.
         amac = st.radio("Bu sezon ana hedefiniz nedir?", 
                         ('Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'), 
                         index=['Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'].index(st.session_state.input_data.get('amac', 'Maksimum Kâr')), key="amac_radio_2")
@@ -117,14 +116,14 @@ if st.session_state.current_step in [1, 2, 3]:
     elif st.session_state.current_step == 3:
         st.header("1. Aşama Devamı: Ekim Öncesi YZ Analizi")
         
-        # Hata Satırı (Line 118) Düzeltildi: '{' was never closed (image_99f09f.png)
+        # Line 118 hatası: '{' was never closed
         prompt = f"""
         Sen Türkiye'deki çiftçilere bilimsel ve lokal verilere dayalı danışmanlık veren bir YZ Ziraat Mühendisisin. 
         Aşağıdaki verilere göre en uygun ekim öncesi tavsiyeni (ürün, münavebe ve temel gübreleme) 3 ana başlıkta özetle. 
         Cevabını Markdown formatında, net ve madde madde sun. (Veriler: Konum: {st.session_state.input_data.get('il', 'Bilinmiyor')}, Geçmiş: {st.session_state.input_data.get('gecmis', '')}, Toprak: {st.session_state.input_data.get('toprak', '')}, Amaç: {st.session_state.input_data.get('amac', '')})
         """
         
-        # Hata Satırı (Line 103) Düzeltildi: invalid syntax (image_8ea5c5.png)
+        # Line 103 hatası: invalid syntax
         with st.spinner("Gemini derinlemesine tarımsal analiz yapıyor..."): 
             try:
                 response = client.models.generate_content( 
@@ -170,7 +169,7 @@ elif st.session_state.current_step == 4:
                     
                     contents = [teshis_prompt, image]
                     
-                    # Hata Satırı (Line 161) Düzeltildi: unterminated string literal (image_8f0398.png)
+                    # Line 161, 164 hataları: unterminated string literal
                     with st.spinner("Gemini hem görseli hem de metni analiz ediyor..."): 
                         response = client.models.generate_content(
                             model='gemini-2.5-flash', 
@@ -298,4 +297,70 @@ elif st.session_state.current_step == 7:
                 Lütfen Google arama aracını kullanarak '{konum}' konumunun önümüzdeki 7 günlük hava durumu tahminini bul.
                 Bulduğun verilere dayanarak, '{islem}' işlemi için:
                 1. **Risk Özeti:** Önümüzdeki günlerdeki en kritik riskleri (Don, Aşırı Yağış, Kuvvetli Rüzgar, Kuraklık vb.) ve günlerini belirt.
-                2. **Tavsiye:** İşlemin (Ekim
+                2. **Tavsiye:** İşlemin (Ekim/İlaçlama/Sulama) yapılacağı en uygun 3 günü ve kaçınılması gereken günleri net bir şekilde tavsiye et.
+                """
+            
+            # Line 296 hatası: unterminated triple-quoted f-string literal
+            with st.spinner("Gemini hava durumu verilerini topluyor ve risk analizi yapıyor..."):
+                try:
+                    # Google Search aracını doğru config ile kullanıyoruz.
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash', 
+                        contents=risk_prompt,
+                        config={"tools": tools_config} 
+                    )
+                    
+                    st.success("✅ Hava Durumu ve Risk Analizi Tamamlandı!")
+                    st.subheader("⛈️ YZ'den Hava Durumu Risk Analizi")
+                    st.markdown(response.text)
+                    
+                except Exception as e:
+                    st.error(f"Gemini API çağrısında bir hata oluştu veya hava durumu verisi alınamadı: {e}")
+        else:
+            st.warning("Lütfen konum bilgisini girin.")
+
+# AŞAMA 8: HASAT TAHMİNİ VE FİNANSAL STRATEJİ (Kullanıcı Sırası: 3)
+elif st.session_state.current_step == 8:
+    st.header("3. Aşama: Hasat Tahmini ve Finansal Strateji")
+    st.info("Bu modül, verim tahmini, kâr analizi ve satış/depolama stratejileri hakkında bilgi sağlar.")
+    
+    urun_adi = st.text_input("Hasat edilecek ürün adı:", key="hasat_urun_input_8", value="Buğday (Makarnalık)")
+    tahmini_verim = st.text_input("Tahmini verim (Örn: 500 kg/dekar):", key="hasat_verim_input_8", value="500 kg/dekar")
+    
+    col_tar, col_fiy = st.columns(2)
+    with col_tar:
+        # Line 323 hatası: unterminated string literal
+        tarla_alani = st.number_input("Toplam Tarla Alanı (Dekar):", min_value=1, value=100, key="hasat_alan_input_8")
+    with col_fiy:
+        girdi_maliyeti = st.number_input("Toplam Girdi Maliyeti (TL/Dekar):", min_value=0, value=2500, key="hasat_maliyet_input_8")
+    
+    if st.button("Kâr ve Strateji Analizi Yap", key="btn_kar_analiz_8"):
+        if urun_adi and tahmini_verim and tarla_alani > 0 and girdi_maliyeti >= 0:
+            hasat_prompt = f"""
+            Sen Türkiye'deki tarım piyasası ve ürün depolama koşulları konusunda uzman bir Ziraat Mühendisi/Ekonomistsin.
+            Aşağıdaki verilere göre çiftçiye 3 ana başlıkta kapsamlı bir analiz sun:
+            
+            1. **Kâr Tahmini ve Başabaş Noktası:** Google arama aracını kullanarak '{urun_adi}' ürünü için güncel piyasa fiyatlarını bul. Toplam {tarla_alani} dekar alan ve {tahmini_verim} tahmini verim ile beklenen toplam geliri ve {girdi_maliyeti} TL/dekar maliyetle beklenen tahmini net kârı (TL) hesapla. Başabaş noktası (kg/dekar) nedir?
+            2. **Depolama ve Kalite Koruma:** '{urun_adi}' için uzun süreli depolama gerekiyorsa, ürünün nem oranı, sıcaklık ve havalandırma açısından optimum depolama koşulları ne olmalıdır?
+            3. **Satış Stratejisi Tavsiyesi:** Güncel piyasa ve trendlere göre, ürünü hasat sonrası hemen satmak mı, yoksa 3-6 ay depolayıp daha sonra satmak mı daha mantıklı olabilir? Somut bir öneri sun.
+
+            Cevabını Markdown formatında, net hesaplamalar ve maddelemeler ile sun.
+            """
+            
+            with st.spinner("Gemini piyasa verilerini topluyor ve hasat stratejisi analizi yapıyor..."):
+                try:
+                    # Google Search aracını doğru config ile kullanıyoruz.
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash', 
+                        contents=hasat_prompt,
+                        config={"tools": tools_config}
+                    )
+                    
+                    st.success("✅ Kâr ve Strateji Analizi Tamamlandı!")
+                    st.subheader("💰 YZ'den Finansal Analiz ve Strateji")
+                    st.markdown(response.text)
+                    
+                except Exception as e:
+                    st.error(f"Gemini API çağrısında bir hata oluştu: {e}")
+        else:
+            st.warning("Lütfen tüm alanları doğru ve eksiksiz doldurun.")
