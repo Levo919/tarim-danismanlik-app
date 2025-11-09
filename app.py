@@ -24,7 +24,7 @@ except Exception as e:
     st.error(f"API istemcisi başlatılamadı: {e}")
     st.stop()
 
-# Tool (Araç) Tanımı: Hata veren kısmı düzelterek sadece gerekli bilgiyi veriyoruz.
+# Tool (Araç) Tanımı: Google Search aracının basit tanımı
 weather_tool_config = [{"google_search": {}}]
 
 
@@ -39,30 +39,46 @@ st.title("🌱 YZ Destekli Tarımsal Danışmanlık (Prototip)")
 st.markdown("---")
 
 
-# --- Navigasyon Butonları ---
+# --- Navigasyon Butonları (İstenilen Yeni Sıralama) ---
 st.sidebar.title("Danışmanlık Aşamaları")
+
+# 1. Planlama (Ekim Öncesi) -> Kod Aşama 1
 if st.sidebar.button("1. Planlama (Ekim Öncesi)"):
     st.session_state.current_step = 1
     st.rerun()
+
+# 2. Gelişim Aşaması (Teşhis) -> Kod Aşama 4
 if st.sidebar.button("2. Teşhis (Gelişim Aşaması)"):
     st.session_state.current_step = 4
     st.rerun()
-if st.sidebar.button("3. Finansal & Çevresel Analiz"):
-    st.session_state.current_step = 5
+
+# 3. Hasat Dönemi -> Kod Aşama 8
+if st.sidebar.button("3. Hasat Tahmini & Satış Stratejisi"):
+    st.session_state.current_step = 8
     st.rerun()
-if st.sidebar.button("4. Destek ve Mevzuat Danışmanlığı"):
-    st.session_state.current_step = 6
-    st.rerun()
-if st.sidebar.button("5. Hava Durumu & Risk Analizi"):
+
+# 4. Hava Durumu ve Risk Analizi -> Kod Aşama 7
+if st.sidebar.button("4. Hava Durumu ve Kritik İşlem Riski"):
     st.session_state.current_step = 7
     st.rerun()
+
+# 5. Finansal ve Çevresel Analiz -> Kod Aşama 5
+if st.sidebar.button("5. Finansal & Çevresel Analiz"):
+    st.session_state.current_step = 5
+    st.rerun()
+
+# 6. Destek ve Mevzuat Danışmanlığı -> Kod Aşama 6
+if st.sidebar.button("6. Destek ve Mevzuat Danışmanlığı"):
+    st.session_state.current_step = 6
+    st.rerun()
+    
 st.sidebar.markdown("---")
 st.sidebar.info("Projenin bu versiyonu Streamlit Cloud'da çalışacak şekilde optimize edilmiştir.")
 
 
 # --- AŞAMALARIN TANIMLARI ---
 
-# AŞAMA 1, 2, 3: EKİM ÖNCESİ PLANLAMA
+# AŞAMA 1, 2, 3: EKİM ÖNCESİ PLANLAMA (Kullanıcı Sırası: 1)
 if st.session_state.current_step == 1:
     st.header("1. Aşama: Temel Tarla Bilgileri")
     il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input", value=st.session_state.input_data.get('il', 'Konya'))
@@ -72,218 +88,4 @@ if st.session_state.current_step == 1:
             st.session_state.input_data['il'] = il
             st.session_state.input_data['gecmis'] = gecmis
             st.session_state.current_step = 2
-            st.rerun()
-        else:
-            st.warning("Lütfen tüm alanları doldurun.")
-
-elif st.session_state.current_step == 2:
-    st.header("2. Aşama: Toprak Durumu ve Amaç")
-    toprak = st.text_area("Toprak analiz sonuçlarınızın özetini girin veya önemli değerleri (pH, NPK) belirtin:", key="toprak_input", value=st.session_state.input_data.get('toprak', 'pH: 7.5, Organik Madde: %1.5 (Düşük), Azot (N) düzeyi orta.'))
-    amac = st.radio("Bu sezon ana hedefiniz nedir?", 
-                    ('Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'), 
-                    index=['Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'].index(st.session_state.input_data.get('amac', 'Maksimum Kâr')), key="amac_input")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Geri", key="back2"):
-            st.session_state.current_step = 1
-            st.rerun()
-    with col2:
-        if st.button("Analiz Et", key="analyze2"):
-            if toprak and amac:
-                st.session_state.input_data['toprak'] = toprak
-                st.session_state.input_data['amac'] = amac
-                st.session_state.current_step = 3
-                st.rerun()
-            else:
-                st.warning("Lütfen tüm alanları doldurun.")
-
-elif st.session_state.current_step == 3:
-    st.header("3. Aşama: Ekim Öncesi YZ Analizi")
-    prompt = f"""
-    Sen Türkiye'deki çiftçilere bilimsel ve lokal verilere dayalı danışmanlık veren bir YZ Ziraat Mühendisisin. 
-    Aşağıdaki verilere göre en uygun ekim öncesi tavsiyeni (ürün, münavebe ve temel gübreleme) 3 ana başlıkta özetle. 
-    Cevabını Markdown formatında, net ve madde madde sun. (Veriler: Konum: {st.session_state.input_data.get('il', 'Bilinmiyor')}, Geçmiş: {st.session_state.input_data.get('gecmis', '')}, Toprak: {st.session_state.input_data.get('toprak', '')}, Amaç: {st.session_state.input_data.get('amac', '')})
-    """
-    
-    with st.spinner("Gemini derinlemesine tarımsal analiz yapıyor..."):
-        try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash', 
-                contents=prompt
-            )
-            st.success("✅ Analiz Tamamlandı!")
-            st.subheader("💡 Gemini'den Ekim Öncesi Tavsiye")
-            st.markdown(response.text)
-        except Exception as e:
-            st.error(f"Gemini API çağrısında bir hata oluştu: {e}")
-            
-    st.markdown("---")
-    if st.button("Yeniden Planlama Yap"):
-        st.session_state.current_step = 1
-        st.session_state.input_data = {}
-        st.rerun()
-
-# AŞAMA 4: GÖRÜNTÜ İLE TEŞHİS
-elif st.session_state.current_step == 4:
-    st.header("4. Aşama: Görüntü ile Hastalık/Zararlı Teşhisi")
-    st.warning("Bu özellik, görsel veri gerektirir. Lütfen net, sadece sorunlu bölgeyi gösteren bir fotoğraf yükleyin.")
-    
-    uploaded_file = st.file_uploader("Bitki Hastalığı veya Zararlısının Fotoğrafını Yükleyin", type=["jpg", "jpeg", "png"])
-    ek_bilgi = st.text_area("Hastalığın yayılımı, ürün adı, ne zaman başladığı gibi ek bilgileriniz varsa girin:", key="ek_bilgi_teshis")
-    
-    if uploaded_file is not None:
-        try:
-            image = Image.open(uploaded_file)
-            st.image(image, caption='Yüklenen Görüntü', width=300)
-            
-            if st.button("Görüntüyü Analiz Et ve Müdahale Önerisi Al"):
-                if ek_bilgi.strip() == "":
-                    st.warning("Lütfen teşhisin doğruluğu için ek bilgi (ürün, yayılım) girin.")
-                else:
-                    teshis_prompt = f"""
-                    Sen uzman bir ziraat mühendisisin. Ekteki görselde gördüğünüz bitki hastalığı/zararlısı nedir? 
-                    Teşhisi koyduktan sonra, lütfen Türkiye tarımına uygun, uygulanabilir bir mücadele ve dozaj önerisi sun. Türkiye'deki kimyasal mücadele ruhsatlarını göz önünde bulundur.
-                    
-                    --- EK BİLGİLER ---
-                    Hastalık hakkında çiftçinin verdiği ek bilgi: {ek_bilgi}
-                    """
-                    
-                    contents = [teshis_prompt, image]
-                    
-                    with st.spinner("Gemini hem görseli hem de metni analiz ediyor..."):
-                        response = client.models.generate_content(
-                            model='gemini-2.5-flash', 
-                            contents=contents
-                        )
-                        st.success("✅ Teşhis Tamamlandı!")
-                        st.subheader("🔬 YZ'den Teşhis ve Müdahale Önerisi")
-                        st.markdown(response.text)
-                        
-        except Exception as e:
-            st.error(f"Görüntü işlenirken bir hata oluştu: {e}")
-            
-    st.markdown("---")
-    if st.button("Yeni Teşhis Başlat"):
-        st.session_state.current_step = 4
-        st.rerun()
-
-# AŞAMA 5: MALİYET VE ÇEVRESEL ETKİ ANALİZİ
-elif st.session_state.current_step == 5:
-    st.header("5. Aşama: Finansal ve Çevresel Etki Analizi")
-    st.info("Bu modül, girdi planlarınızın ekonomik yükünü ve çevresel ayak izini değerlendirir.")
-    
-    gubre_plan = st.text_area(
-        "Kullanmayı planladığınız gübre türlerini (Örn: Üre, DAP, Amonyum Sülfat) ve miktarlarını (kg/dekar) girin:", 
-        key="gubre_plan_input", 
-        value="Üre: 25 kg/dekar, DAP: 15 kg/dekar, Potasyum Sülfat: 5 kg/dekar"
-    )
-    
-    col_fiyat, col_alan = st.columns(2)
-    with col_fiyat:
-        gubre_fiyat = st.text_input("Bölgenizdeki ortalama gübre fiyatı (Örn: Üre'nin 50 kg çuvalı 800 TL):", key="gubre_fiyat_input", value="800 TL / 50 kg çuval")
-    with col_alan:
-        islem_alani = st.number_input("İşlem yapılacak toplam tarım alanı (Dekar):", min_value=1, value=100, key="islem_alani_input")
-        
-    
-    if st.button("Maliyet ve Etkiyi Analiz Et"):
-        if gubre_plan and gubre_fiyat and islem_alani:
-            analiz_prompt = f"""
-            Sen uzman bir tarım ekonomistisin. Aşağıdaki verileri kullanarak çiftçiye 3 ana başlıkta kapsamlı bir analiz sun:
-            
-            1. **Toplam Girdi Maliyeti Tahmini (Gübreleme):** Verilen plan ve fiyatlara göre toplam gübre maliyetini hesapla (TL ve TL/dekar cinsinden).
-            2. **Çevresel Etki Özeti (Karbon ve Su):** Verilen gübre türlerinin tahmini karbon ayak izini (CO2 eşdeğeri olarak) ve tahmini su kirliliği potansiyelini özetle.
-            3. **Maliyet Optimizasyonu Önerisi:** Maliyeti düşürmek veya çevresel etkiyi azaltmak için (Örn: Yaprak gübresi kullanımı, yavaş salınımlı gübreye geçiş, dozaj optimizasyonu) somut 2 adet öneri sun.
-
-            --- GİRDİ VERİLERİ ---
-            Gübreleme Planı: {gubre_plan}
-            Bölge Ortalama Fiyatı: {gubre_fiyat}
-            Toplam Alan: {islem_alani} Dekar
-            """
-            
-            with st.spinner("Gemini maliyet ve çevresel etki analizi yapıyor..."):
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash', 
-                        contents=analiz_prompt
-                    )
-                    st.success("✅ Finansal ve Çevresel Analiz Tamamlandı!")
-                    st.subheader("📊 YZ'den Maliyet ve Etki Analizi")
-                    st.markdown(response.text)
-                except Exception as e:
-                    st.error(f"Gemini API çağrısında bir hata oluştu: {e}")
-        else:
-            st.warning("Lütfen tüm analiz alanlarını doldurun.")
-            
-# AŞAMA 6: DESTEK VE MEVZUAT DANIŞMANLIĞI
-elif st.session_state.current_step == 6:
-    st.header("6. Aşama: Destek ve Mevzuat Danışmanlığı")
-    st.info("Bu modül, Türkiye'deki güncel tarım destekleri ve mevzuat değişiklikleri hakkında bilgi sağlar.")
-    
-    konu = st.text_input("Öğrenmek istediğiniz destek/mevzuat konusunu veya ürün adını girin (Örn: Mazot ve Gübre Desteği, Sertifikalı Tohum Desteği, Zeytinlik Yasası):", key="mevzuat_konu_input")
-    il_bilgisi = st.text_input("Hangi il/bölge için bilgi istiyorsunuz? (Bölgesel destekler değişebilir):", key="mevzuat_il_input")
-
-    if st.button("Mevzuat Bilgisi Al"):
-        if konu and il_bilgisi:
-            mevzuat_prompt = f"""
-            Sen Türkiye Cumhuriyeti Tarım ve Orman Bakanlığı'nın mevzuatlarını ve güncel desteklerini bilen bir YZ Danışmanısın.
-            Aşağıdaki bilgilere göre çiftçiye, istediği konuda en güncel ve resmi verilere dayalı bir bilgi notu hazırla. 
-            Cevabın; 1) Desteğin/Mevzuatın Amacı, 2) Başvuru Şartları ve 3) Güncel Miktarı/Önemli Maddeleri başlıklarını içermelidir.
-            
-            --- GİRDİ VERİLERİ ---
-            Konu: {konu}
-            İl/Bölge: {il_bilgisi}
-            """
-            
-            with st.spinner("Gemini, güncel destek ve mevzuatları araştırıyor..."):
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash', 
-                        contents=mevzuat_prompt
-                    )
-                    st.success("✅ Mevzuat Bilgisi Hazır!")
-                    st.subheader(f"⚖️ '{konu}' Konusunda YZ Analizi")
-                    st.markdown(response.text)
-                except Exception as e:
-                    st.error(f"Gemini API çağrısında bir hata oluştu: {e}")
-        else:
-            st.warning("Lütfen hem konu hem de il bilgisini girin.")
-
-# AŞAMA 7: HAVA DURUMU VE RİSK ANALİZİ
-elif st.session_state.current_step == 7:
-    st.header("7. Aşama: Hava Durumu & İklim Riski Analizi")
-    st.info("Bu modül, anlık hava durumu tahminlerini analiz ederek ekim, sulama ve ilaçlama için risk değerlendirmesi yapar.")
-    
-    konum = st.text_input("Hava durumunu öğrenmek istediğiniz yer (İl/İlçe):", key="hava_konum_input", value="Konya Cihanbeyli")
-    islem = st.radio("Yapılacak Planlı Tarımsal İşlem:", 
-                     ('Ekim / Hasat', 'İlaçlama (Fungisit/Pestisit)', 'Yoğun Sulama'), 
-                     key="tarimsal_islem")
-
-    if st.button("Hava Durumu ve Risk Analizi Yap"):
-        if konum:
-            risk_prompt = f"""
-            Sen Türkiye'deki tarımsal hava durumu riskleri konusunda uzman bir YZ'sin.
-            Lütfen Google arama aracını kullanarak '{konum}' konumunun önümüzdeki 7 günlük hava durumu tahminini bul.
-            Bulduğun verilere dayanarak, '{islem}' işlemi için:
-            1. **Risk Özeti:** Önümüzdeki günlerdeki en kritik riskleri (Don, Aşırı Yağış, Kuvvetli Rüzgar, Kuraklık vb.) ve günlerini belirt.
-            2. **Tavsiye:** İşlemin (Ekim/İlaçlama/Sulama) yapılacağı en uygun 3 günü ve kaçınılması gereken günleri net bir şekilde tavsiye et.
-
-            Cevabını Markdown formatında, tablolar ve listeler kullanarak düzenli sun.
-            """
-            
-            with st.spinner("Gemini hava durumu verilerini topluyor ve risk analizi yapıyor..."):
-                try:
-                    # DÜZELTİLMİŞ TOOL ÇAĞRISI
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash', 
-                        contents=risk_prompt,
-                        config={"tools": [{"google_search": {}}]}
-                    )
-                    
-                    st.success("✅ Hava Durumu ve Risk Analizi Tamamlandı!")
-                    st.subheader("⛈️ YZ'den Hava Durumu Risk Analizi")
-                    st.markdown(response.text)
-                    
-                except Exception as e:
-                    st.error(f"Gemini API çağrısında bir hata oluştu: {e}")
-        else:
-            st.warning("Lütfen konum bilgisini girin.")
+            st.rer
