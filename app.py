@@ -25,9 +25,6 @@ except Exception as e:
     st.stop()
 
 # Tool (Araç) Tanımı: Hata veren kısmı düzelterek sadece gerekli bilgiyi veriyoruz.
-# Gemini, Google Search aracının adını otomatik olarak tanıyacaktır.
-# SADECE 'google:search' adını vermeliyiz.
-
 weather_tool_config = [{"google_search": {}}]
 
 
@@ -65,8 +62,44 @@ st.sidebar.info("Projenin bu versiyonu Streamlit Cloud'da çalışacak şekilde 
 
 # --- AŞAMALARIN TANIMLARI ---
 
-# AŞAMA 1, 2, 3: EKİM ÖNCESİ PLANLAMA (Mevcut kod)
+# AŞAMA 1, 2, 3: EKİM ÖNCESİ PLANLAMA
 if st.session_state.current_step == 1:
     st.header("1. Aşama: Temel Tarla Bilgileri")
     il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input", value=st.session_state.input_data.get('il', 'Konya'))
-    gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input", value=st.session_state.input_data.get('gecmis', '202
+    gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input", value=st.session_state.input_data.get('gecmis', '2024: Buğday, 2023: Kanola, 2022: Arpa'))
+    if st.button("Planlama Adımı 2"):
+        if il and gecmis:
+            st.session_state.input_data['il'] = il
+            st.session_state.input_data['gecmis'] = gecmis
+            st.session_state.current_step = 2
+            st.rerun()
+        else:
+            st.warning("Lütfen tüm alanları doldurun.")
+
+elif st.session_state.current_step == 2:
+    st.header("2. Aşama: Toprak Durumu ve Amaç")
+    toprak = st.text_area("Toprak analiz sonuçlarınızın özetini girin veya önemli değerleri (pH, NPK) belirtin:", key="toprak_input", value=st.session_state.input_data.get('toprak', 'pH: 7.5, Organik Madde: %1.5 (Düşük), Azot (N) düzeyi orta.'))
+    amac = st.radio("Bu sezon ana hedefiniz nedir?", 
+                    ('Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'), 
+                    index=['Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Verim'].index(st.session_state.input_data.get('amac', 'Maksimum Kâr')), key="amac_input")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Geri", key="back2"):
+            st.session_state.current_step = 1
+            st.rerun()
+    with col2:
+        if st.button("Analiz Et", key="analyze2"):
+            if toprak and amac:
+                st.session_state.input_data['toprak'] = toprak
+                st.session_state.input_data['amac'] = amac
+                st.session_state.current_step = 3
+                st.rerun()
+            else:
+                st.warning("Lütfen tüm alanları doldurun.")
+
+elif st.session_state.current_step == 3:
+    st.header("3. Aşama: Ekim Öncesi YZ Analizi")
+    prompt = f"""
+    Sen Türkiye'deki çiftçilere bilimsel ve lokal verilere dayalı danışmanlık veren bir YZ Ziraat Mühendisisin. 
+    Aşağıdaki verilere göre en uygun ekim öncesi tavsiyeni (ürün, münavebe ve temel gübreleme) 3 ana başlıkta özetle. 
+    Cevabını Markdown formatında, net ve madde madde sun. (Veriler: Konum: {st.session_state.input_data.get('il', 'Bilinmiyor')}, Geçmiş: {st.session_state.input_data.get('gecmis', '')}, Toprak: {st.session_state.input_data.get('toprak', '')}, Amaç: {st.session_state.input_data.get
