@@ -65,27 +65,5 @@ if st.sidebar.button("5. Hava Durumu & Risk Analizi"):
     st.session_state.current_step = 7
     st.rerun()
 st.sidebar.markdown("---")
-st.sidebar.info("Projenin bu versiyonu Streamlit Cloud'da çalışacak şekilde optimize edilmiştir.")
-
-
-# --- AŞAMALARIN TANIMLARI ---
-
-# AŞAMA 1, 2, 3: EKİM ÖNCESİ PLANLAMA (Mevcut kod)
-if st.session_state.current_step == 1:
-    st.header("1. Aşama: Temel Tarla Bilgileri")
-    il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input", value=st.session_state.input_data.get('il', 'Konya'))
-    gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input", value=st.session_state.input_data.get('gecmis', '2024: Buğday, 2023: Kanola, 2022: Arpa'))
-    if st.button("Planlama Adımı 2"):
-        if il and gecmis:
-            st.session_state.input_data['il'] = il
-            st.session_state.input_data['gecmis'] = gecmis
-            st.session_state.current_step = 2
-            st.rerun()
-        else:
-            st.warning("Lütfen tüm alanları doldurun.")
-
-elif st.session_state.current_step == 2:
-    st.header("2. Aşama: Toprak Durumu ve Amaç")
-    toprak = st.text_area("Toprak analiz sonuçlarınızın özetini girin veya önemli değerleri (pH, NPK) belirtin:", key="toprak_input", value=st.session_state.input_data.get('toprak', 'pH: 7.5, Organik Madde: %1.5 (Düşük), Azot (N) düzeyi orta.'))
-    amac = st.radio("Bu sezon ana hedefiniz nedir?", 
-                    ('Maksimum Kâr', 'Toprak Sağlığını Geliştirme (Münavebe)', 'Maksimum Ver
+st.sidebar.info("Projenin bu versiyonu Stream
+                
