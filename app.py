@@ -7,39 +7,28 @@ import time
 
 # --- 1. Konfigürasyon ve API Anahtarını Çekme ---
 
-# --- CSS İYİLEŞTİRMELERİ (GİRİŞ ALANLARI YEŞİL, BUTONLAR SARI ÇERÇEVELİ) ---
+# --- CSS İYİLEŞTİRMELERİ (YENİ TASARIM DAHİL) ---
 st.markdown("""
 <style>
 /* Streamlit'in ana menü butonunu (sağ üst) ve footer'ını gizle */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 
-/* --- GİRİŞ ALANLARI (INPUT/TEXTAREA) İÇİN YEŞİL ARKA PLAN --- */
-/* Streamlit'in widget'larını çevreleyen div'leri hedef alıyoruz */
-div[data-testid="stTextInput"],
-div[data-testid="stTextArea"],
-div[data-testid="stNumberInput"] {
-    background-color: #E6F7E6; /* Açık yeşil arka plan */
-    border-radius: 5px;
-    padding: 10px; 
-    margin-bottom: 5px;
-}
-
-/* Alanın içindeki input/textarea elementini şeffaf yapıyoruz ki yeşil arka plan görünsün */
+/* Giriş alanlarının (Input, Textarea, NumberInput) arka planının yeşil yapılması */
+/* Çiftçinin veri girdiği her yer (il, geçmiş, toprak, gübre planı vb.) artık yeşil arka plana sahip. */
 .stTextInput > div > div > input,
 .stTextArea > div > div > textarea,
 .stNumberInput > div > div > input {
-    background-color: transparent; 
-    border: none; 
+    background-color: #E6F7E6; /* Açık yeşil arka plan */
+    border: 1px solid #3CB371; /* Yeşil çerçeve */
     color: #333333;
+    border-radius: 5px;
 }
-/* --- GİRİŞ ALANLARI CSS SONU --- */
-
 
 /* Navigasyon butonlarının (sidebar) yuvarlak ve sarı çerçeveli yapılması */
 .stButton>button {
     border-radius: 20px;
-    border: 1px solid #FFD700; /* Sarı çerçeve */
+    border: 1px solid #FFD700; /* Çerçeve rengi sarı (İstenen çerçeve) */
     color: #333333;
     background-color: #F7F9FB; 
 }
