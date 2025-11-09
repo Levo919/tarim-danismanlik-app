@@ -3,7 +3,7 @@ from google import genai
 import os
 from PIL import Image
 import io
-import time # Yeni eklenen kütüphane
+import time 
 
 # --- 1. Konfigürasyon ve API Anahtarını Çekme (Streamlit Secrets Desteği) ---
 
@@ -61,7 +61,7 @@ if st.sidebar.button("3. Finansal & Çevresel Analiz"):
 if st.sidebar.button("4. Destek ve Mevzuat Danışmanlığı"):
     st.session_state.current_step = 6
     st.rerun()
-if st.sidebar.button("5. Hava Durumu & Risk Analizi"): # YENİ BUTON
+if st.sidebar.button("5. Hava Durumu & Risk Analizi"):
     st.session_state.current_step = 7
     st.rerun()
 st.sidebar.markdown("---")
@@ -131,7 +131,7 @@ elif st.session_state.current_step == 3:
         st.session_state.input_data = {}
         st.rerun()
 
-# AŞAMA 4: GÖRÜNTÜ İLE TEŞHİS (Mevcut kod)
+# AŞAMA 4: GÖRÜNTÜ İLE TEŞHİS
 elif st.session_state.current_step == 4:
     st.header("4. Aşama: Görüntü ile Hastalık/Zararlı Teşhisi")
     st.warning("Bu özellik, görsel veri gerektirir. Lütfen net, sadece sorunlu bölgeyi gösteren bir fotoğraf yükleyin.")
@@ -175,7 +175,7 @@ elif st.session_state.current_step == 4:
         st.session_state.current_step = 4
         st.rerun()
 
-# AŞAMA 5: MALİYET VE ÇEVRESEL ETKİ ANALİZİ (Mevcut kod)
+# AŞAMA 5: MALİYET VE ÇEVRESEL ETKİ ANALİZİ
 elif st.session_state.current_step == 5:
     st.header("5. Aşama: Finansal ve Çevresel Etki Analizi")
     st.info("Bu modül, girdi planlarınızın ekonomik yükünü ve çevresel ayak izini değerlendirir.")
@@ -222,7 +222,7 @@ elif st.session_state.current_step == 5:
         else:
             st.warning("Lütfen tüm analiz alanlarını doldurun.")
             
-# AŞAMA 6: DESTEK VE MEVZUAT DANIŞMANLIĞI (Mevcut kod)
+# AŞAMA 6: DESTEK VE MEVZUAT DANIŞMANLIĞI
 elif st.session_state.current_step == 6:
     st.header("6. Aşama: Destek ve Mevzuat Danışmanlığı")
     st.info("Bu modül, Türkiye'deki güncel tarım destekleri ve mevzuat değişiklikleri hakkında bilgi sağlar.")
@@ -256,7 +256,7 @@ elif st.session_state.current_step == 6:
         else:
             st.warning("Lütfen hem konu hem de il bilgisini girin.")
 
-# --- YENİ AŞAMA: 7. HAVA DURUMU VE RİSK ANALİZİ ---
+# AŞAMA 7: HAVA DURUMU VE RİSK ANALİZİ
 elif st.session_state.current_step == 7:
     st.header("7. Aşama: Hava Durumu & İklim Riski Analizi")
     st.info("Bu modül, anlık hava durumu tahminlerini analiz ederek ekim, sulama ve ilaçlama için risk değerlendirmesi yapar.")
@@ -289,7 +289,6 @@ elif st.session_state.current_step == 7:
                     
                     # Tool çağrısı yapılırsa, çıktı gelene kadar bekleyelim (bazen tek seferde gelmez)
                     if response.function_calls:
-                        # Bu kısım genellikle tek bir API çağrısında gerçekleşir, ancak kullanıcıya görsel feedback verelim.
                         st.text("Veriler toplanıyor...")
                         time.sleep(2)
 
