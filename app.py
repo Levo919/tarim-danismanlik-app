@@ -64,20 +64,19 @@ def set_step(step_number):
 # Uygulama ayarları (Wide mode seçildi).
 st.set_page_config(page_title="🌱 YZ Tarım Danışmanlığı", layout="wide")
 
-# Yeni Başlık ve Logo Yapısı (Pancar Kooperatifi teması için)
-col_logo, col_title = st.columns([1, 6]) 
-
-with col_logo:
-    # Lütfen "pankobirlik_logo.png" dosya adını, GitHub'a yüklediğiniz dosya adıyla DEĞİŞTİRİN.
-    st.image("pankobirlik_logo.png", width=70) 
-
-with col_title:
-    st.markdown("# YZ Destekli Tarımsal Danışmanlık (Prototip)") 
-
+# ANA İÇERİK BAŞLIĞI (Logo kenar çubuğuna taşındığı için burada sadece başlık var)
+st.markdown("# YZ Destekli Tarımsal Danışmanlık (Prototip)") 
 st.markdown("---")
 
 
-# --- Navigasyon Butonları ---
+# --- Navigasyon ve Logo Kenar Çubuğu ---
+
+# --- LOGO KENAR ÇUBUĞUNA EKLENİYOR ---
+# Lütfen "pankobirlik_logo.png" dosya adını, GitHub'a yüklediğiniz dosya adıyla DEĞİŞTİRİN.
+st.sidebar.image("pankobirlik_logo.png", use_column_width=True) 
+st.sidebar.markdown("---") # Logodan sonra bir çizgi ekleyelim
+# --- LOGO EKLENDİ ---
+
 st.sidebar.title("Danışmanlık Aşamaları")
 
 if st.sidebar.button("1. Planlama (Ekim Öncesi)", key="nav_planlama", on_click=set_step, args=(1,)):
