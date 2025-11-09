@@ -1,18 +1,27 @@
 import streamlit as st
 from google import genai
 import os
-
-# Pillow (PIL) kütüphanesi görüntü işleme için gerekli, kurulduğunu varsayıyoruz.
-# pip install pillow 
 from PIL import Image
 import io
 
-# --- 1. Konfigürasyon ve API Anahtarı ---
+# --- 1. Konfigürasyon ve API Anahtarını Çekme (Secrets Desteği Eklendi) ---
+
 try:
-    # API Anahtarının hala tanımlı olduğundan emin olun (Terminal oturumunda)
-    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    # 1. Streamlit Secrets'ı kontrol et (Bulut için)
+    if 'GEMINI_API_KEY' in st.secrets.vars:
+        api_key = st.secrets.vars.GEMINI_API_KEY
+    # 2. Ortam değişkenini kontrol et (Yerel çalıştırma için)
+    else:
+        api_key = os.environ.get("GEMINI_API_KEY")
+
+    if not api_key:
+        st.error("Gemini API Anahtarı bulunamadı. Lütfen Streamlit Secrets'a 'GEMINI_API_KEY' değişkenini ekleyin.")
+        st.stop()
+        
+    client = genai.Client(api_key=api_key)
+
 except Exception as e:
-    st.error("Gemini API Anahtarı bulunamadı. Lütfen 'GEMINI_API_KEY' ortam değişkenini ayarlayın.")
+    st.error(f"API istemcisi başlatılamadı: {e}")
     st.stop()
 
 
@@ -22,8 +31,10 @@ if 'current_step' not in st.session_state:
 if 'input_data' not in st.session_state:
     st.session_state.input_data = {}
 
-st.title("🌱 YZ Destekli Tarımsal Danışmanlık (Prototip Geliştirme)")
+st.set_page_config(page_title="YZ Tarım Danışmanlığı", layout="wide")
+st.title("🌱 YZ Destekli Tarımsal Danışmanlık (Prototip)")
 st.markdown("---")
+
 
 # --- Navigasyon Butonları ---
 st.sidebar.title("Danışmanlık Aşamaları")
@@ -33,10 +44,11 @@ if st.sidebar.button("1. Planlama (Ekim Öncesi)"):
 if st.sidebar.button("2. Teşhis (Gelişim Aşaması)"):
     st.session_state.current_step = 4
     st.rerun()
-st.markdown("---")
+st.sidebar.markdown("---")
+st.sidebar.info("Projenin bu versiyonu, kod değişiklikleri olmadan Streamlit Cloud'da çalışacak şekilde optimize edilmiştir.")
 
 
-# --- MEVCUT AŞAMALAR (1, 2, 3) KORUNDU ---
+# --- AŞAMALAR ---
 
 # AŞAMA 1: Konum ve Tarla Geçmişi
 if st.session_state.current_step == 1:
@@ -102,20 +114,16 @@ elif st.session_state.current_step == 3:
         st.rerun()
 
 
-# --- YENİ AŞAMA: 4. GÖRÜNTÜ İLE TEŞHİS ---
+# --- AŞAMA 4: GÖRÜNTÜ İLE TEŞHİS ---
 elif st.session_state.current_step == 4:
     st.header("4. Aşama: Görüntü ile Hastalık/Zararlı Teşhisi")
     st.warning("Bu özellik, görsel veri gerektirir. Lütfen net, sadece sorunlu bölgeyi gösteren bir fotoğraf yükleyin.")
     
-    # Dosya yükleme bileşeni
     uploaded_file = st.file_uploader("Bitki Hastalığı veya Zararlısının Fotoğrafını Yükleyin", type=["jpg", "jpeg", "png"])
-    
-    # Kullanıcıdan ek bilgi alma
-    ek_bilgi = st.text_area("Hastalığın yayılımı, ne zaman başladığı gibi ek bilgileriniz varsa girin:", key="ek_bilgi_teshis")
+    ek_bilgi = st.text_area("Hastalığın yayılımı, ürün adı, ne zaman başladığı gibi ek bilgileriniz varsa girin:", key="ek_bilgi_teshis")
     
     if uploaded_file is not None:
         try:
-            # Görüntüyü yükle ve göster
             image = Image.open(uploaded_file)
             st.image(image, caption='Yüklenen Görüntü', width=300)
             
@@ -123,13 +131,11 @@ elif st.session_state.current_step == 4:
                 if ek_bilgi.strip() == "":
                     st.warning("Lütfen teşhisin doğruluğu için ek bilgi (ürün, yayılım) girin.")
                 else:
-                    # Görüntü ve metin verisini birleştirerek Gemini'ye gönder
                     teshis_prompt = f"""
                     Sen uzman bir ziraat mühendisisin. Ekteki görselde gördüğünüz bitki hastalığı/zararlısı nedir? 
-                    Teşhisi koyduktan sonra, lütfen Türkiye tarımına uygun, uygulanabilir bir mücadele ve dozaj önerisi sun.
-
+                    Teşhisi koyduktan sonra, lütfen Türkiye tarımına uygun, uygulanabilir bir mücadele ve dozaj önerisi sun. Türkiye'deki kimyasal mücadele ruhsatlarını göz önünde bulundur.
+                    
                     --- EK BİLGİLER ---
-                    Görüntüdeki ürün: Lütfen tahmin edin.
                     Hastalık hakkında çiftçinin verdiği ek bilgi: {ek_bilgi}
                     """
                     
@@ -146,7 +152,6 @@ elif st.session_state.current_step == 4:
                         
         except Exception as e:
             st.error(f"Görüntü işlenirken bir hata oluştu: {e}")
-            st.warning("Lütfen '.jpg' veya '.png' formatında olduğundan emin olun.")
             
     st.markdown("---")
     if st.button("Yeni Teşhis Başlat"):
