@@ -68,8 +68,8 @@ st.set_page_config(page_title="🌱 YZ Tarım Danışmanlığı", layout="wide")
 col_logo, col_title = st.columns([1, 6]) 
 
 with col_logo:
-    # Geçici logo yer tutucu
-    st.markdown("## 🚜") 
+    # Lütfen "pankobirlik_logo.png" dosya adını, GitHub'a yüklediğiniz dosya adıyla DEĞİŞTİRİN.
+    st.image("pankobirlik_logo.png", width=70) 
 
 with col_title:
     st.markdown("# YZ Destekli Tarımsal Danışmanlık (Prototip)") 
@@ -110,7 +110,6 @@ if st.session_state.current_step in [1, 2, 3]:
         st.header("1. Aşama: Temel Tarla Bilgileri")
         il = st.text_input("Tarlanız hangi ilde/ilçede bulunuyor?", key="il_input_1", value=st.session_state.input_data.get('il', 'Konya'))
         
-        # Hata düzeltildi: Parantez ve tırnak hatası giderildi
         gecmis = st.text_area("Son 3 yılda tarlanızda hangi ürünleri ektiniz?", key="gecmis_input_1", value=st.session_state.input_data.get('gecmis', '2024: Buğday, 2023: Kanola, 2022: Arpa'))
         
         if st.button("Planlama Adımı 2", key="btn_planlama_ileri"):
@@ -123,7 +122,6 @@ if st.session_state.current_step in [1, 2, 3]:
                 st.warning("Lütfen tüm alanları doldurun.")
 
     elif st.session_state.current_step == 2:
-        # Hata düzeltildi: Tırnak ve sözdizimi hataları giderildi
         st.header("1. Aşama Devamı: Toprak Durumu ve Amaç")
         toprak = st.text_area("Toprak analiz sonuçlarınızın özetini girin veya önemli değerleri (pH, NPK) belirtin:", key="toprak_input_2", value=st.session_state.input_data.get('toprak', 'pH: 7.5, Organik Madde: %1.5 (Düşük), Azot (N) düzeyi orta.'))
         
@@ -148,14 +146,12 @@ if st.session_state.current_step in [1, 2, 3]:
     elif st.session_state.current_step == 3:
         st.header("1. Aşama Devamı: Ekim Öncesi YZ Analizi")
         
-        # Hata düzeltildi: Parantez hatası giderildi
         prompt = f"""
         Sen Türkiye'deki çiftçilere bilimsel ve lokal verilere dayalı danışmanlık veren bir YZ Ziraat Mühendisisin. 
         Aşağıdaki verilere göre en uygun ekim öncesi tavsiyeni (ürün, münavebe ve temel gübreleme) 3 ana başlıkta özetle. 
         Cevabını Markdown formatında, net ve madde madde sun. (Veriler: Konum: {st.session_state.input_data.get('il', 'Bilinmiyor')}, Geçmiş: {st.session_state.input_data.get('gecmis', '')}, Toprak: {st.session_state.input_data.get('toprak', '')}, Amaç: {st.session_state.input_data.get('amac', '')})
         """
         
-        # Hata düzeltildi: Geçersiz sözdizimi hatası giderildi
         with st.spinner("Gemini derinlemesine tarımsal analiz yapıyor..."): 
             try:
                 response = client.models.generate_content( 
@@ -187,7 +183,6 @@ elif st.session_state.current_step == 4:
             image = Image.open(uploaded_file)
             st.image(image, caption='Yüklenen Görüntü', width=300)
             
-            # Hata düzeltildi: st.button tırnak hatası giderildi
             if st.button("Görüntüyü Analiz Et ve Müdahale Önerisi Al", key="btn_analiz_teshis_4"):
                 if ek_bilgi.strip() == "":
                     st.warning("Lütfen teşhisin doğruluğu için ek bilgi (ürün, yayılım) girin.")
@@ -202,7 +197,6 @@ elif st.session_state.current_step == 4:
                     
                     contents = [teshis_prompt, image]
                     
-                    # Hata düzeltildi: Tırnak hatası giderildi
                     with st.spinner("Gemini hem görseli hem de metni analiz ediyor..."): 
                         response = client.models.generate_content(
                             model='gemini-2.5-flash', 
@@ -335,7 +329,6 @@ elif st.session_state.current_step == 7:
                 2. **Tavsiye:** İşlemin (Ekim/İlaçlama/Sulama) yapılacağı en uygun 3 günü ve kaçınılması gereken günleri net bir şekilde tavsiye et.
                 """
             
-            # Hata düzeltildi: Üçlü tırnak hatası giderildi
             with st.spinner("Gemini hava durumu verilerini topluyor ve risk analizi yapıyor..."):
                 try:
                     # Google Search aracını doğru config ile kullanıyoruz.
@@ -364,7 +357,6 @@ elif st.session_state.current_step == 8:
     
     col_tar, col_fiy = st.columns(2)
     with col_tar:
-        # Hata düzeltildi: Tırnak hatası giderildi
         tarla_alani = st.number_input("Toplam Tarla Alanı (Dekar):", min_value=1, value=100, key="hasat_alan_input_8")
     with col_fiy:
         girdi_maliyeti = st.number_input("Toplam Girdi Maliyeti (TL/Dekar):", min_value=0, value=2500, key="hasat_maliyet_input_8")
